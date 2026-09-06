@@ -1,0 +1,40 @@
+import bcryptjs from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import type { User } from '@/types';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const SALT_ROUNDS = 10;
+
+export async function hashPassword(password: string): Promise<string> {
+  return bcryptjs.hash(password, SALT_ROUNDS);
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcryptjs.compare(password, hash);
+}
+
+export function generateToken(userId: string, email: string): string {
+  return jwt.sign(
+    { userId, email },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+}
+
+export function verifyToken(token: string): { userId: string; email: string } | null {
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+    return decoded;
+  } catch (error) {
+    return null;
+  }
+}
+
+export function generateEmailVerificationToken(): string {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+export function generatePasswordResetToken(): string {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
